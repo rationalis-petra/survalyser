@@ -1,72 +1,57 @@
 import sys
 from PyQt5 import QtWidgets
-
-app = QtWidgets.QApplication(sys.argv)
-windows = QtWidgets.QWidget()
-
-windows.resize(500,500)
-windows.move(100,100)
-windows.show()
-sys.exit(app.exec_())
-
-# class Spreadsheet(Gtk.Grid):
-#     def __init__(self, dataframe):
-#         # sizing the grid
-#         for col in dataframe.columns:
-#             self.insert_column()
-#         for row in dataframe.index:
-#             self.insert_row()
-#         self.insert_row()
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel
+from PyQt5.QtCore import Qt
 
 
+class SurvalyserMain(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-# class MainWindow(Gtk.Window):
-#     def __init__(self):
-#         super().__init__()
-#         self.set_title("Survalyser")
-#         self.set_default_size(width=1280, height=720)
-#         self.connect("destroy", Gtk.main_quit)
+        self.menu_layout = QtWidgets.QVBoxLayout()
+        self.menu_layout.setAlignment(Qt.AlignCenter)
 
-#         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
-#                            halign=Gtk.Align.CENTER,
-#                            valign=Gtk.Align.CENTER)
-#         self.add(self.box)
+        self.title_label = QLabel("Survalyser")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.menu_layout.addWidget(self.title_label)
 
-#         self.title_label = Gtk.Label(label="Survalser")
-#         self.box.add(self.title_label)
+        self.resume_btn = QPushButton("Resume")
+        self.save_btn = QPushButton("Saves")
+        self.load_btn = QPushButton("Load Data")
 
-#         self.resumebtn = Gtk.Button(label="Resume")
-#         self.box.add(self.resumebtn)
+        self.resume_btn.clicked.connect(self.on_resume)
+        self.save_btn.clicked.connect(self.on_save)
+        self.load_btn.clicked.connect(self.on_load)
 
-#         self.savedbtn = Gtk.Button(label="Saved Datasets")
-#         self.box.add(self.savedbtn)
+        self.menu_layout.addWidget(self.resume_btn)
+        self.menu_layout.addWidget(self.save_btn)
+        self.menu_layout.addWidget(self.load_btn)
 
-#         self.loadbtn = Gtk.Button(label="Load Dataset")
-#         self.loadbtn.connect("clicked", self.on_loadbtn_clicked)
-#         self.box.add(self.loadbtn)
+        self.setLayout(self.menu_layout)
+        self.resize(500, 500)
+        self.move(100, 100)
 
-#     def on_destroy():
-#         Gtk.main_quit()
+        self.setWindowTitle("Survalyser")
 
-#     def on_resume_clicked(self, button):
-#         # get most recent data
-#         get_dataframe("most_recent_file")
+        self.show()
 
-#         # now, 
+    def on_load(self):
+        filed = QtWidgets.QFileDialog()
+        #filed.setAcceptMode(QtWidgtes.QFileDialog.AcceptOpen)
+        filed.show()
 
-#     def on_saved_clicked(self, button):
-#         pass
+    def on_resume(self):
+        pass
 
-#     def on_load_clicked(self, button):
-#         file_action = Gtk.FileChooserAction.OPEN
-#         chooser = Gtk.FileChooserDialog(title="Open File")
-#         chooser.show()
-
-# def main():
-#     win = MainWindow()
-#     win.show_all()
-#     Gtk.main()
+    def on_save(self):
+        pass
 
 
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    win = SurvalyserMain()
+    win.show()
+    app.exec()
 
 
+main()
