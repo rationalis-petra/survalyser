@@ -1,0 +1,3 @@
+
++ [[https://python-gtk-3-tutorial.readthedocs.io/en/latest/label.html][Gtk Tutorial]]
++ [[Python GTK+3 Referenxe][https://athenajc.gitbooks.io/python-gtk-3-api/content/]]
