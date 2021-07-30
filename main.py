@@ -1,52 +1,68 @@
 import sys
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog, QTableWidget, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog
+from PySide6.QtWidgets import QTableWidget, QVBoxLayout, QStackedLayout
+from PySide6.QtCore import Qt
 
 import pandas as pd
+
+# other parts of program
+from spreadsheet import SpreadSheetWindow
+
+
+class MainWindow(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignCenter)
+
+        self.title_label = QLabel("<font color=darkblue size = 20>Survalyser")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.title_label)
+
+        self.resume_btn = QPushButton("Resume")
+        self.save_btn = QPushButton("Saves")
+        self.load_btn = QPushButton("Load Data")
+
+        self.resume_btn.clicked.connect(parent.on_resume)
+        self.save_btn.clicked.connect(parent.on_save)
+        self.load_btn.clicked.connect(parent.on_load)
+
+        self.layout.addWidget(self.resume_btn)
+        self.layout.addWidget(self.save_btn)
+        self.layout.addWidget(self.load_btn)
+
+        self.setLayout(self.layout)
 
 
 class SurvalyserMain(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.menu_layout = QVBoxLayout()
-        self.menu_layout.setAlignment(Qt.AlignCenter)
+        self.main_window = MainWindow(self)
+        self.spreadsheet_window = SpreadSheetWindow(self)
 
-        self.title_label = QLabel("Survalyser")
-        self.title_label.setAlignment(Qt.AlignCenter)
-        self.menu_layout.addWidget(self.title_label)
+        self.layout = QStackedLayout()
+        self.layout.addWidget(self.main_window)
+        self.layout.addWidget(self.spreadsheet_window)
 
-        self.resume_btn = QPushButton("Resume")
-        self.save_btn = QPushButton("Saves")
-        self.load_btn = QPushButton("Load Data")
+        self.setLayout(self.layout)
 
-        self.resume_btn.clicked.connect(self.on_resume)
-        self.save_btn.clicked.connect(self.on_save)
-        self.load_btn.clicked.connect(self.on_load)
-
-        self.menu_layout.addWidget(self.resume_btn)
-        self.menu_layout.addWidget(self.save_btn)
-        self.menu_layout.addWidget(self.load_btn)
-
-        self.setLayout(self.menu_layout)
-        self.resize(500, 500)
+        self.resize(1080, 720)
         self.move(100, 100)
 
         self.setWindowTitle("Survalyser")
 
-        self.show()
-
     def on_load(self):
+        self.spreadsheet_window
         file_name = QFileDialog.getOpenFileName(self,
                                                 "Open Dataset",
                                                 ".",
                                                 "CSV files (*.csv)")
         dataframe = pd.read_csv(file_name[0])
-        self.spreadsheet_layout = QVBoxLayout()
-        self.table = QTableWidget
-        self.spreadsheet_layout.addWidget(self.table)
-        
+        self.spreadsheet_window.set_data(dataframe)
+        self.layout.setCurrentIndex(1)
+
     def on_resume(self):
         pass
 
@@ -55,10 +71,10 @@ class SurvalyserMain(QWidget):
 
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)
     win = SurvalyserMain()
     win.show()
     app.exec()
 
 
-main()
+app = QtWidgets.QApplication([])
+#main()
