@@ -1,14 +1,16 @@
 import sys
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog, QTableWidget, QVBoxLayout
 from PyQt5.QtCore import Qt
+
+import pandas as pd
 
 
 class SurvalyserMain(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.menu_layout = QtWidgets.QVBoxLayout()
+        self.menu_layout = QVBoxLayout()
         self.menu_layout.setAlignment(Qt.AlignCenter)
 
         self.title_label = QLabel("Survalyser")
@@ -36,10 +38,15 @@ class SurvalyserMain(QWidget):
         self.show()
 
     def on_load(self):
-        filed = QtWidgets.QFileDialog()
-        #filed.setAcceptMode(QtWidgtes.QFileDialog.AcceptOpen)
-        filed.show()
-
+        file_name = QFileDialog.getOpenFileName(self,
+                                                "Open Dataset",
+                                                ".",
+                                                "CSV files (*.csv)")
+        dataframe = pd.read_csv(file_name[0])
+        self.spreadsheet_layout = QVBoxLayout()
+        self.table = QTableWidget
+        self.spreadsheet_layout.addWidget(self.table)
+        
     def on_resume(self):
         pass
 
