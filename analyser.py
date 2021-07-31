@@ -4,27 +4,57 @@ import lifelines as life
 
 
 def get_kaplan(data, time_col, event_col, discriminator_col):
-    print("time col:" + time_col)
-    print("event col:" + event_col)
 
     indig_series = data["indigenous?"] == "Indigenous"
-    kmf = life.KaplanMeierFitter()
-    kmf.fit(data.loc[indig_series, "brca-time"],
-            data.loc[indig_series, "brca-event"],
-            label="Indigenous")
 
-    # we can easily plot the survival curve as well
-    # we set ci_show = False to hide confidence intervals
-    res = kmf.plot(ci_show=False,
-                   title="Indigeous Survival",
-                   xlim=(0, 20),
-                   ylim=(0, 1),
-                   at_risk_counts=True)
+    kmf_indig = life.KaplanMeierFitter()
+    kmf_nonindig = life.KaplanMeierFitter()
 
-    out = kmf.plot(ci_show=False, ax=res, at_risk_counts=True, xlim=(0, 20))
+    # step 1: find out all unique values for discriminator
+    cat = data[discriminator_col].unique()
 
-    # out.get_figure().savefig("test-data/test.png")
-    return out.get_figure()
+    # step 2: create fitters for each value & fit data
+    fitters = {}
+    for val in cat:
+        fitter = life.KaplanMeierFitter()
+        fitters[val] = fitter
+        selector = data[discriminator_col] == val
+        fitter.fit(data.loc[selector, time_col],
+                   data.loc[selector, event_col],
+                   label=val)
+
+    # step 3: plot the data
+    # TODO: title
+    ax = None
+    for (val, fitter) in fitters.items():
+        ax = fitter.plot(ci_show=False,
+                         xlim=(0, 20),
+                         ax=ax)
+
+
+    # kmf_indig.fit(data.loc[indig_series, time_col],
+    #               data.loc[indig_series, event_col],
+    #               label="Indigenous")
+
+    # # we can easily plot the survival curve as well
+    # # we set ci_show = False to hide confidence intervals
+    # ax = kmf_indig.plot(ci_show=False,
+    #                     title="Indigeous Survival",
+    #                     xlim=(0, 20))
+
+    # kmf_nonindig.fit(data.loc[~indig_series, "brca-time"],
+    #                  data.loc[~indig_series, "brca-event"],
+    #                  label="Non Indigenous")
+
+    # ax = kmf_nonindig.plot(ci_show=False,
+    #                        xlim=(0, 20),
+    #                        ax=ax)
+
+    # plt = life.plotting.add_at_risk_counts(kmf_indig,
+    #                                        kmf_nonindig,
+    #                                        ax=ax)
+    return ax.get_figure()
+
 
 def to_days(time):
     return time.days

@@ -11,6 +11,7 @@ class SpreadSheetWindow(QWidget):
         self.layout = QHBoxLayout()
         self.sidebar = QWidget()
         self.sidebar.layout = QVBoxLayout()
+        self.sidebar.layout.setAlignment(Qt.AlignTop)
 
         self.select_time_btn = QPushButton("Select Time")
         self.select_event_btn = QPushButton("Select Event")
@@ -58,7 +59,6 @@ class SpreadSheetWindow(QWidget):
             for row in range(0, self.data.shape[0]):
                 self.table.item(row, old).setBackground(Qt.white)
         col = self.table.currentColumn()
-        self.time_col = col
         for row in range(0, self.data.shape[0]):
             self.table.item(row, col).setBackground(color)
 
@@ -79,9 +79,9 @@ class SpreadSheetWindow(QWidget):
             self.discrim_col is None or self.event_col is None):
             print("must have data, time, event, discriminator")
         else:
-            discriminator = self.data.columns[self.discrim_col]
             time = self.data.columns[self.time_col]
             event = self.data.columns[self.event_col]
+            discriminator = self.data.columns[self.discrim_col]
 
             plot = analyser.get_kaplan(self.data, time, event, discriminator)
 
@@ -89,4 +89,5 @@ class SpreadSheetWindow(QWidget):
                                                     "Open Dataset",
                                                     ".",
                                                     "Image files (*.png)")
-            plot.savefig(file_name[0])
+            if file_name[0] != '':
+                plot.savefig(file_name[0])

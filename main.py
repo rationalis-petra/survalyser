@@ -8,6 +8,7 @@ import pandas as pd
 
 # other parts of program
 from spreadsheet import SpreadSheetWindow
+from docs import DocumentationWindow
 
 
 class MainWindow(QWidget):
@@ -23,14 +24,17 @@ class MainWindow(QWidget):
         self.resume_btn = QPushButton("Resume")
         self.save_btn = QPushButton("Saves")
         self.load_btn = QPushButton("Load Data")
+        self.doc_btn = QPushButton("Documentation")
 
         self.resume_btn.clicked.connect(parent.on_resume)
         self.save_btn.clicked.connect(parent.on_save)
         self.load_btn.clicked.connect(parent.on_load)
+        self.doc_btn.clicked.connect(parent.on_doc)
 
         self.layout.addWidget(self.resume_btn)
         self.layout.addWidget(self.save_btn)
         self.layout.addWidget(self.load_btn)
+        self.layout.addWidget(self.doc_btn)
 
         self.setLayout(self.layout)
 
@@ -41,10 +45,12 @@ class SurvalyserMain(QWidget):
 
         self.main_window = MainWindow(self)
         self.spreadsheet_window = SpreadSheetWindow(self)
+        self.doc_window = DocumentationWindow(self)
 
         self.layout = QStackedLayout()
         self.layout.addWidget(self.main_window)
         self.layout.addWidget(self.spreadsheet_window)
+        self.layout.addWidget(self.doc_window)
 
         self.setLayout(self.layout)
 
@@ -64,10 +70,15 @@ class SurvalyserMain(QWidget):
         self.layout.setCurrentIndex(1)
 
     def on_resume(self):
-        pass
+        dataframe = pd.read_csv('test-data/indigenous-clean.csv')
+        self.spreadsheet_window.set_data(dataframe)
+        self.layout.setCurrentIndex(1)
 
     def on_save(self):
         pass
+
+    def on_doc(self):
+        self.layout.setCurrentIndex(2)
 
 
 def main():
