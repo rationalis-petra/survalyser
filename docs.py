@@ -2,33 +2,13 @@ import sys
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog
 from PySide6.QtWidgets import (QTableWidget, QHBoxLayout, QVBoxLayout,
-                               QStackedLayout)
+                               QStackedLayout, QTextEdit)
 from PySide6.QtCore import Qt
 
-
-welcome_text = """
-Welcome to Survalyser!
-...
-"""
-
-load_text = """
-To load data into survalyser, click the 'Load Data' button
-in the main menu, and select the file you'd like to load data
-from. If you encounter issues, it may be due to one of the following
-reasons:
-...
-"""
-
-spreadsheet_text = """
-The spreadsheet view ....
-...
-"""
-
-analyse_text = """
-When analysing data...
-...
-"""
-
+welcome_path = "documentation/welcome"
+load_path = "documentation/load"
+spreadsheet_path = "documentation/spreadsheet"
+analyse_path = "documentation/analyse"
 
 
 class DocumentationTextArea(QWidget):
@@ -37,10 +17,20 @@ class DocumentationTextArea(QWidget):
 
         self.layout = QStackedLayout()
 
-        self.welcome_text = QLabel(welcome_text)
-        self.load_text = QLabel(load_text)
-        self.spreadsheet_text = QLabel(spreadsheet_text)
-        self.analyse_text = QLabel(analyse_text)
+        self.welcome_text = QTextEdit()
+        self.load_text = QTextEdit()
+        self.spreadsheet_text = QTextEdit()
+        self.analyse_text = QTextEdit()
+
+        self.welcome_text.setReadOnly(True)
+        self.load_text.setReadOnly(True)
+        self.spreadsheet_text.setReadOnly(True)
+        self.analyse_text.setReadOnly(True)
+
+        self.welcome_text.append(open(welcome_path).read())
+        self.load_text.append(open(load_path).read())
+        self.spreadsheet_text.append(open(spreadsheet_path).read())
+        self.analyse_text.append(open(analyse_path).read())
 
         self.layout.addWidget(self.welcome_text)
         self.layout.addWidget(self.load_text)
