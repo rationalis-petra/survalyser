@@ -1,5 +1,15 @@
+<div style="margin: 20px 20px 20px 20px">
 <h1>Loading Data</h1>
-To load data into survalyser, click the 'Load Data' button
-in the main menu, and select the file you'd like to load data
-from. If you encounter issues, it may be due to one of the following
-reasons:
+<p>
+  Before you load your data into survalyser, you must make sure that it
+  is formatted correctly. In order to load a file into survalyser,
+  it must be converted into a csv file.This can be easily done
+  from many spreadsheet applications through the 'export' option.
+ </p>
+
+<p>
+  In excel, the steps for coverting to a csv file are as follows:
+
+</p>
+
+</div>
