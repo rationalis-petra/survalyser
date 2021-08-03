@@ -1,34 +1,30 @@
-import sys
-from PySide6 import QtWidgets, QtCore, QtGui
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog
-from PySide6.QtWidgets import (QTableWidget, QHBoxLayout, QVBoxLayout,
-                               QStackedLayout)
+# import sys
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel
+from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout, QStackedLayout)
 from PySide6.QtCore import Qt
+
+from toolbar import ToolBarWidget
 
 
 welcome_text = """
 Welcome to Survalyser!
-...
 """
 
 load_text = """
-To load data into survalyser, click the 'Load Data' button
-in the main menu, and select the file you'd like to load data
-from. If you encounter issues, it may be due to one of the following
-reasons:
-...
+To load data into Survalyser, you need to export it as a '.csv' file. In order to be analysed, the data needs to be formatted correctly:
+
+Time data: The time data must be completely numeric, in your units of choice (e.g if a patient lived for 3 years 6 monts, the time value could be 3.5 (years), 42 (months), etc.
+
+Event data: The 'event' column must consist of values reading True or False. The 'event' will be True if something of interest occurred (e.g. patient death), and False if the patient should be censored.
 """
 
 spreadsheet_text = """
-The spreadsheet view ....
-...
+The spreadsheet view allow you to see the data you have loaded in to the application for analysis.
 """
 
 analyse_text = """
 When analysing data...
-...
 """
-
 
 
 class DocumentationTextArea(QWidget):
@@ -75,7 +71,7 @@ class DocumentationButtonArrea(QWidget):
         self.setLayout(self.layout)
 
 
-class DocumentationWindow(QWidget):
+class DocumentationWindow(ToolBarWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.layout = QHBoxLayout()

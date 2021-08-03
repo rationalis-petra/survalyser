@@ -1,8 +1,8 @@
-import sys
-from PySide6 import QtWidgets, QtCore, QtGui
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog
-from PySide6.QtWidgets import QTableWidget, QVBoxLayout, QStackedLayout
+# import sys
+from PySide6.QtWidgets import (QWidget, QPushButton, QLabel, QFileDialog,
+                               QVBoxLayout, QStackedLayout, QApplication)
 from PySide6.QtCore import Qt
+# from PySide6.QtGui import QIcon
 
 import pandas as pd
 
@@ -80,6 +80,9 @@ class SurvalyserMain(QWidget):
     def on_doc(self):
         self.layout.setCurrentIndex(2)
 
+    def go_home(self):
+        self.layout.setCurrentIndex(0)
+
 
 def main():
     win = SurvalyserMain()
@@ -87,5 +90,5 @@ def main():
     app.exec()
 
 
-app = QtWidgets.QApplication([])
-#main()
+app = QApplication([])
+# main()

@@ -3,9 +3,10 @@ from PySide6.QtWidgets import QHBoxLayout, QPushButton, QFileDialog
 from PySide6.QtCore import Qt
 
 import analyser
+from toolbar import ToolBarWidget
 
 
-class SpreadSheetWindow(QWidget):
+class SpreadSheetWindow(ToolBarWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.layout = QHBoxLayout()
