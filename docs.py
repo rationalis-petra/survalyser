@@ -1,31 +1,14 @@
-# import sys
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel
-from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout, QStackedLayout)
+import sys
+from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QFileDialog
+from PySide6.QtWidgets import (QTableWidget, QHBoxLayout, QVBoxLayout,
+                               QStackedLayout, QTextEdit)
 from PySide6.QtCore import Qt
 
-from toolbar import ToolBarWidget
-
-
-welcome_text = """
-Welcome to Survalyser!
-"""
-
-load_text = """
-To load data into Survalyser, you need to export it as a '.csv' file. In order to be analysed, the data needs to be formatted correctly:
-
-Time data: The time data must be completely numeric, in your units of choice (e.g if a patient lived for 3 years 6 monts, the time value could be 3.5 (years), 42 (months), etc.
-
-Event data: The 'event' column must consist of values reading True or False. The 'event' will be True if something of interest occurred (e.g. patient death), and False if the patient should be censored.
-"""
-
-spreadsheet_text = """
-The spreadsheet view allow you to see the data you have loaded in to the application for analysis.
-"""
-
-analyse_text = """
-When analysing data...
-"""
-
+welcome_path = "documentation/welcome"
+load_path = "documentation/load"
+spreadsheet_path = "documentation/spreadsheet"
+analyse_path = "documentation/analyse"
 
 class DocumentationTextArea(QWidget):
     def __init__(self, parent):
@@ -33,10 +16,20 @@ class DocumentationTextArea(QWidget):
 
         self.layout = QStackedLayout()
 
-        self.welcome_text = QLabel(welcome_text)
-        self.load_text = QLabel(load_text)
-        self.spreadsheet_text = QLabel(spreadsheet_text)
-        self.analyse_text = QLabel(analyse_text)
+        self.welcome_text = QTextEdit()
+        self.load_text = QTextEdit()
+        self.spreadsheet_text = QTextEdit()
+        self.analyse_text = QTextEdit()
+
+        self.welcome_text.setReadOnly(True)
+        self.load_text.setReadOnly(True)
+        self.spreadsheet_text.setReadOnly(True)
+        self.analyse_text.setReadOnly(True)
+
+        self.welcome_text.append(open(welcome_path).read())
+        self.load_text.append(open(load_path).read())
+        self.spreadsheet_text.append(open(spreadsheet_path).read())
+        self.analyse_text.append(open(analyse_path).read())
 
         self.layout.addWidget(self.welcome_text)
         self.layout.addWidget(self.load_text)

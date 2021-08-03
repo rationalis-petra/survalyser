@@ -1,0 +1,95 @@
+<div style="margin: 20px 20px 20px 20px">
+<h1>The Spreadsheet </h1>
+
+<p>
+The spreadsheet view will open once you have loaded data into
+Survalyser. Unlike excel, you cannot edit the contents of spreadsheet
+cells. However, there are some pre-processing actions you can take
+before analysing the data here. Notably, you can <b>filter</b>
+and <b>generate</b>
+</p>
+
+<h3>Filetering</h3>
+<p>
+You can filter out rows based on the values in a specific
+column. To do this, simply select a column and press the
+'filter' button. This will bring up a pop-up window allowing
+you to filter out values based on that column. 
+</p>
+
+<p>
+For example, if I have an AGE column, and I want to
+filter out all patients who are under 50, I can first
+select the age column, then click filter:
+</p>
+<p>TODO: IMAGE</p>
+<p>
+This brings up the aforementioned pop-up. From here,
+I can select my comparison type to be "<", and I input the
+value 50. Finally, I click 'filter'. This will filter
+out all rows with patients under 50.
+<p>TODO: IMAGE</p>
+
+<h3>Generating</h3>
+Sometimes, you might want to generate a new column. This will usually
+be one of the 3 columns used in the analysis, i.e. the time, event and
+category columns. 
+
+
+<h4>Time</h4>
+Preferably, you already have a time column, but it may be the case that
+you want to calculate the time between two dates.
+
+<h4>Event</h4>
+<p>
+The 'event' column will determine whether or not a patient is censored.
+If you do not have one already, Survalyser can generate one for you.
+This functions very similarly to the filtering, but I'll go through
+an example to demonstrate.
+</p>
+<p>
+Most commonly, there will be a cause of death column, so we'll say
+that we want a 
+</p>
+
+<h4>Category</h4>
+
+
+<h2>Advanced</h2>
+<p>
+  The spreadsheet facilities, while simple, are designed to cover most
+  common use-cases. If you find them to be insufficient for your task,
+  your best option is to process the data in a seperate program before
+  importing it into Survalyser. Nevertheless, survalyser does have support
+  for advanced filtering and column generation, which you'll notice
+  under the 'advanced' tab. You should only use this option if you are
+  familiar with the python language.
+</p>
+
+<h3>Filtering</h3>
+  If you select 'advanced filtering', you will be provided with a text
+  area which contains the following code:
+<p>
+def predicate(row):
+    
+</p>
+  Here, you must write a python function that will take in a row, 
+  and return either True or False. When you are done, click 'run'.
+  Survalyser is based on pandas and numpy, so the rows that you
+  are being passed in will be rows from a pandas dataframe which
+  represents the spreadsheet.
+
+<h3>Generation</h3>
+<p>
+  You can also generate new rows using python. The 'advanced' generator
+  is much the same as the advanced filter. This time, however, the function
+  you provide must take in a row and output a value that will be inserted
+  into a cell in the dataframe. The function is called 'generate':
+</p>
+<p>
+def generate(row):
+  ...
+</p>
+  
+
+</div>

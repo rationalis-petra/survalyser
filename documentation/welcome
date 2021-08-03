@@ -1,0 +1,24 @@
+<div style="margin: 20px 20px 20px 20px">
+<h1>Welcome</h1>
+    <p>
+    Welcome to the Survalyser documentation! Survalyser is a survival analysis
+    program which is capable of producing Kaplan-Meier curves & Cox Regression. 
+    </p>
+
+    <p>
+    This documentation contains three sections:
+    <ul>
+    <li><b>Loading Data:</b>
+      This section discuss how to prepare your data before loading it into
+      survalyser.
+    </li>
+    <li><b>The Spreadsheet:</b>
+      This section discusses how to use the spreadsheet to filter & process
+      the data you've loaded in before analysis.
+    </li>
+    <li><b>Analysis:</b>
+      This section discusses how to use the various analysis tools to generate
+      charts & calculate various statistical quantities.
+    </li>
+    
+<div>

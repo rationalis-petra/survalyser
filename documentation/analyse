@@ -1,0 +1,26 @@
+<h1>Analysis</h1>
+<p>
+  Survalyser can analyse data in two ways: it can
+  produce Kaplan-Meier curves and perform cox regression.
+  You'll see this reflected in the 'analyse' column (left of
+  the spreadsheet view), which has both of these options.
+</p>
+
+<h2>Kaplan-Meier</h2>
+<p>To make a Kaplan-Meier plot, you'll need to select three
+columns:
+<ul>
+<li><b>Time</b>: This column must be numeric (i.e. no dates etc), and
+represents the time until a patient died or was censored.
+</li>
+<li><b>Event</b>: This column must be boolean (i.e. True/False), and
+will be True if the Patient Died and False if they were Censored.
+</li>
+<li><b>Category</b>: This column can contain anything, but usually
+will be text (e.g. "Luminal A", "Luminal B", ...). Each unique value
+in this column will correspond to a single curve on the plot.
+</li>
+</ul>
+
+
+<h2>Cox Regression</h2>
