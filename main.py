@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt
 import pandas as pd
 
 # other parts of program
+from toolbar import ToolBarWidget
 from spreadsheet import SpreadSheetWindow
 from docs import DocumentationWindow
 

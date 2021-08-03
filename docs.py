@@ -5,10 +5,13 @@ from PySide6.QtWidgets import (QTableWidget, QHBoxLayout, QVBoxLayout,
                                QStackedLayout, QTextEdit)
 from PySide6.QtCore import Qt
 
+from toolbar import ToolBarWidget
+
 welcome_path = "documentation/welcome"
 load_path = "documentation/load"
 spreadsheet_path = "documentation/spreadsheet"
 analyse_path = "documentation/analyse"
+
 
 class DocumentationTextArea(QWidget):
     def __init__(self, parent):
