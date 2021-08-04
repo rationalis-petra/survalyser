@@ -1,4 +1,4 @@
-# import sys
+import sys
 from PySide6.QtWidgets import (QWidget, QPushButton, QLabel, QFileDialog,
                                QVBoxLayout, QStackedLayout, QApplication)
 from PySide6.QtCore import Qt
@@ -7,7 +7,6 @@ from PySide6.QtCore import Qt
 import pandas as pd
 
 # other parts of program
-from toolbar import ToolBarWidget
 from spreadsheet import SpreadSheetWindow
 from docs import DocumentationWindow
 
@@ -86,10 +85,10 @@ class SurvalyserMain(QWidget):
 
 
 def main():
+    app = QApplication([])
     win = SurvalyserMain()
     win.show()
-    app.exec()
+    sys.exit(app.exec())
 
 
-app = QApplication([])
-# main()
+main()

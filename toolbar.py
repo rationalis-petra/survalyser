@@ -24,3 +24,6 @@ class ToolBarWidget(QWidget):
 
     def setLayout(self, layout):
         self.child.setLayout(layout)
+
+    def getBar(self):
+        return self.toolbar

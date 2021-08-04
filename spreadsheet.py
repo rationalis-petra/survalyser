@@ -1,9 +1,23 @@
-from PySide6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
-from PySide6.QtWidgets import QHBoxLayout, QPushButton, QFileDialog
+from PySide6.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem,
+                               QVBoxLayout, QHBoxLayout, QPushButton,
+                               QFileDialog, QDialog, QFormLayout, QComboBox,
+                               QTextEdit, QLabel)
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction
+
+import numpy as np
 
 import analyser
 from toolbar import ToolBarWidget
+from icons import sv_icons
+
+comparators = {
+    "=": lambda x, y: x == y,
+    ">": lambda x, y: x > y,
+    "<": lambda x, y: x < y,
+    ">=": lambda x, y: x >= y,
+    "<=": lambda x, y: x <= y
+}
 
 
 class SpreadSheetWindow(ToolBarWidget):
@@ -14,6 +28,7 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout = QVBoxLayout()
         self.sidebar.layout.setAlignment(Qt.AlignTop)
 
+        kaplan_lbl = QLabel("<font color=darkblue size = 5>Kaplan Meier")
         self.select_time_btn = QPushButton("Select Time")
         self.select_event_btn = QPushButton("Select Event")
         self.select_discrim_btn = QPushButton("Select Discriminator")
@@ -24,10 +39,15 @@ class SpreadSheetWindow(ToolBarWidget):
         self.select_discrim_btn.clicked.connect(self.set_discrim_col)
         self.analyse_btn.clicked.connect(self.analyse)
 
+        self.sidebar.layout.addWidget(kaplan_lbl)
         self.sidebar.layout.addWidget(self.select_time_btn)
         self.sidebar.layout.addWidget(self.select_event_btn)
         self.sidebar.layout.addWidget(self.select_discrim_btn)
         self.sidebar.layout.addWidget(self.analyse_btn)
+
+        cox_lbl = QLabel("<font color=darkblue size = 5>Cox Regression")
+        self.sidebar.layout.addWidget(cox_lbl)
+
         self.sidebar.setLayout(self.sidebar.layout)
 
         self.table = QTableWidget()
@@ -40,6 +60,12 @@ class SpreadSheetWindow(ToolBarWidget):
         self.time_col = None
         self.discrim_col = None
         self.event_col = None
+
+        # add actions to the toolbar
+        toolbar = self.getBar()
+        self.action_filter = QAction(sv_icons.filt, "Filter", toolbar)
+        self.action_filter.triggered.connect(self.do_filter)
+        toolbar.addAction(self.action_filter)
 
     def set_data(self, dataframe):
         dims = dataframe.shape
@@ -92,3 +118,78 @@ class SpreadSheetWindow(ToolBarWidget):
                                                     "Image files (*.png)")
             if file_name[0] != '':
                 plot.savefig(file_name[0])
+
+    def do_filter(self):
+        dialog = FilterDialog(self)
+        acc, value, col, comp = dialog.run()
+        col_type = self.data.dtypes[col]
+        if acc == 1:
+            if col_type == np.float64:
+                val = float(value)
+            elif col_type == np.int64:
+                val = int(value)
+            else:
+                val = value
+
+            index = self.data[col].apply(comparators[comp], args=(val,))
+            counter = 0
+            for elt in index:
+                if not elt:
+                    self.table.removeRow(counter)
+                else:
+                    counter = counter + 1
+
+            # now, update the model
+            self.data = self.data[index]
+
+
+class FilterDialog(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle("Filter")
+
+        form_layout = QFormLayout()
+        form = QWidget()
+        self.column_combo = QComboBox()
+        self.comparator_combo = QComboBox()
+        self.value_field = QTextEdit()
+
+        for col in parent.data.columns:
+            self.column_combo.addItem(col)
+        for comparator in ["=", ">", "<", ">=", "<="]:
+            self.comparator_combo.addItem(comparator)
+
+        # set selected column
+        self.column_combo.setCurrentIndex(parent.table.currentColumn())
+
+        form_layout.addRow("Column:", self.column_combo)
+        form_layout.addRow("Comparator:", self.comparator_combo)
+        form_layout.addRow("Value:", self.value_field)
+
+        form.setLayout(form_layout)
+
+        accept_btn = QPushButton("Filter")
+        accept_btn.clicked.connect(self.accept)
+
+        reject_btn = QPushButton("Cancel")
+        reject_btn.clicked.connect(self.reject)
+
+        button_area = QWidget()
+        button_area_layout = QHBoxLayout()
+        button_area_layout.addWidget(accept_btn)
+        button_area_layout.addWidget(reject_btn)
+        button_area.setLayout(button_area_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(form)
+
+        layout.addWidget(button_area)
+
+        self.setLayout(layout)
+
+    def run(self):
+        self.exec()
+        return (self.result(),
+                self.value_field.toPlainText(),
+                self.column_combo.currentText(),
+                self.comparator_combo.currentText())
