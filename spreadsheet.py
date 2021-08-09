@@ -28,6 +28,12 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout = QVBoxLayout()
         self.sidebar.layout.setAlignment(Qt.AlignTop)
 
+        self.data = None
+        self.time_col = None
+        self.discrim_col = None
+        self.event_col = None
+
+        # KAPLAN MEIER
         kaplan_lbl = QLabel("<font color=darkblue size = 5>Kaplan Meier")
         self.select_time_btn = QPushButton("Select Time")
         self.select_event_btn = QPushButton("Select Event")
@@ -45,8 +51,26 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout.addWidget(self.select_discrim_btn)
         self.sidebar.layout.addWidget(self.analyse_btn)
 
+        # COX REGRESSION
         cox_lbl = QLabel("<font color=darkblue size = 5>Cox Regression")
+        cox_time_lbl = QLabel("Select Time Column")
+        self.cox_time_combo = QComboBox()
+        cox_event_lbl = QLabel("Select Event Column")
+        self.cox_event_combo = QComboBox()
+        cox_covar_lbl = QLabel("Select Covaraites")
+        self.cox_covar_cols = CoxColumnSelect(self)
+        self.cox_analyse_btn = QPushButton("Analyse!")
+
+        self.cox_analyse_btn.clicked.connect(self.analyse_cox)
+
         self.sidebar.layout.addWidget(cox_lbl)
+        self.sidebar.layout.addWidget(cox_time_lbl)
+        self.sidebar.layout.addWidget(self.cox_time_combo)
+        self.sidebar.layout.addWidget(cox_event_lbl)
+        self.sidebar.layout.addWidget(self.cox_event_combo)
+        self.sidebar.layout.addWidget(cox_covar_lbl)
+        self.sidebar.layout.addWidget(self.cox_covar_cols)
+        self.sidebar.layout.addWidget(self.cox_analyse_btn)
 
         self.sidebar.setLayout(self.sidebar.layout)
 
@@ -55,11 +79,6 @@ class SpreadSheetWindow(ToolBarWidget):
         self.layout.addWidget(self.table)
 
         self.setLayout(self.layout)
-
-        self.data = None
-        self.time_col = None
-        self.discrim_col = None
-        self.event_col = None
 
         # add actions to the toolbar
         toolbar = self.getBar()
@@ -79,7 +98,11 @@ class SpreadSheetWindow(ToolBarWidget):
                 item.setText(str(dataframe.loc[row, dataframe.columns[col]]))
                 self.table.setItem(row, col, item)
 
+        self.cox_time_combo.addItems(dataframe.columns)
+        self.cox_event_combo.addItems(dataframe.columns)
+
         self.data = dataframe
+        self.cox_covar_cols.set_data(dataframe)
 
     def set_col_color(self, old, color):
         if old is not None:
@@ -89,21 +112,21 @@ class SpreadSheetWindow(ToolBarWidget):
         for row in range(0, self.data.shape[0]):
             self.table.item(row, col).setBackground(color)
 
-    def set_time_col(self, dataframe):
+    def set_time_col(self, widget):
         self.set_col_color(self.time_col, Qt.red)
         self.time_col = self.table.currentColumn()
 
-    def set_discrim_col(self, dataframe):
+    def set_discrim_col(self, widget):
         self.set_col_color(self.discrim_col, Qt.blue)
         self.discrim_col = self.table.currentColumn()
 
-    def set_event_col(self, dataframe):
+    def set_event_col(self, widget):
         self.set_col_color(self.event_col, Qt.yellow)
         self.event_col = self.table.currentColumn()
 
     def analyse(self):
         if (self.data is None or self.time_col is None or
-            self.discrim_col is None or self.event_col is None):
+           self.discrim_col is None or self.event_col is None):
             print("must have data, time, event, discriminator")
         else:
             time = self.data.columns[self.time_col]
@@ -118,6 +141,12 @@ class SpreadSheetWindow(ToolBarWidget):
                                                     "Image files (*.png)")
             if file_name[0] != '':
                 plot.savefig(file_name[0])
+
+    def analyse_cox(self):
+        time_col = self.cox_time_combo.currentText()
+        event_col = self.cox_event_combo.currentText()
+        value_cols = self.cox_covar_cols.get_values()
+        analyser.get_cox(self.data, time_col, event_col, value_cols)
 
     def do_filter(self):
         dialog = FilterDialog(self)
@@ -193,3 +222,55 @@ class FilterDialog(QDialog):
                 self.value_field.toPlainText(),
                 self.column_combo.currentText(),
                 self.comparator_combo.currentText())
+
+
+class CoxColumnSelect(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+        layout = QVBoxLayout()
+        container = QWidget()
+        self.combo_layout = QVBoxLayout()
+        container.setLayout(self.combo_layout)
+
+        btnContainer = QWidget()
+        btnLayout = QHBoxLayout()
+
+        addComboButton = QPushButton("+")
+        rmComboButton = QPushButton("-")
+
+        addComboButton.clicked.connect(self.add_combo)
+        rmComboButton.clicked.connect(self.rm_combo)
+
+        btnLayout.addWidget(addComboButton)
+        btnLayout.addWidget(rmComboButton)
+        btnContainer.setLayout(btnLayout)
+
+        layout.addWidget(container)
+        layout.addWidget(btnContainer)
+
+        self.setLayout(layout)
+
+        self.combo_widgets = []
+        self.add_combo()
+
+    def add_combo(self):
+        combo = QComboBox()
+        if self.parent.data is not None:
+            combo.addItems(self.parent.data.columns)
+        self.combo_widgets.append(combo)
+        self.combo_layout.addWidget(combo)
+
+    def rm_combo(self):
+        widget = self.combo_widgets.pop()
+        self.combo_layout.removeWidget(widget)
+        self.update()
+
+    def set_data(self, data):
+        for combo in self.combo_widgets:
+            combo.clear()
+            combo.addItems(data.columns)
+
+    def get_values(self):
+        return map(lambda x: x.currentText(), self.combo_widgets)
