@@ -9,25 +9,25 @@ before analysing the data here. Notably, you can <b>filter</b>
 and <b>generate</b>
 </p>
 
-<h3>Filetering</h3>
+<h3>Filtering</h3>
 <p>
 You can filter out rows based on the values in a specific
-column. To do this, simply select a column and press the
-'filter' button. This will bring up a pop-up window allowing
-you to filter out values based on that column. 
+column. To do this, you can click on the 'filter' button, which
+is next to the home button on the toolbar. This will bring up
+a pop-up window allowing you to filter out values based on that
+column. 
 </p>
 
 <p>
 For example, if I have an AGE column, and I want to
-filter out all patients who are under 50, I can first
-select the age column, then click filter:
+filter out all patients who are under 50, I open
+the filter menu:
 </p>
 <p>TODO: IMAGE</p>
 <p>
-This brings up the aforementioned pop-up. From here,
-I can select my comparison type to be "<", and I input the
-value 50. Finally, I click 'filter'. This will filter
-out all rows with patients under 50.
+From here, I can select my comparison type to be "<",
+and I input the value 50. Finally, I click 'filter'.
+This will filter out all rows with patients under 50.
 <p>TODO: IMAGE</p>
 
 <h3>Generating</h3>

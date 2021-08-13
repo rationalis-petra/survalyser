@@ -3,7 +3,7 @@
 [ ] Documentation (how to use)
 [ ] Error reporting (if the analysis fails)
 [x] Navigation
-[ ] Aesthetic improvements
+[x] Aesthetic improvements
 [ ] Frequently used files
 [ ] Config (themes, fonts, colour, etc.)
 [ ] Curve Previews
@@ -16,9 +16,14 @@
 [ ] Multi-column discriminator
 [ ] P-values
 [ ] Forrest plots 
-[ ] Chi Squareds
-[ ] Multivaraite Analysis (???)
+[ ] Kaplan horizontal limits 
+[x] Chi Squareds
+[x] Multivaraite Analysis (???)
   [ ] Hazard ratio
   [ ] Survival
   [ ] ...
 [ ] Cox Regression Curves (per-timepoint compensation)
+
+
+* Bugs
+[ ] Stateful matplotlib API

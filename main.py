@@ -54,7 +54,8 @@ class SurvalyserMain(QWidget):
 
         self.setLayout(self.layout)
 
-        self.resize(1080, 720)
+        self.resize(1280, 720)
+        self.setWindowState(Qt.WindowMaximized)
         self.move(100, 100)
 
         self.setWindowTitle("Survalyser")
