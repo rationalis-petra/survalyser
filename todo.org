@@ -1,12 +1,12 @@
 
 * UI
-[ ] Documentation (how to use)
+[x] Documentation (how to use)
 [ ] Error reporting (if the analysis fails)
 [x] Navigation
 [x] Aesthetic improvements
 [ ] Frequently used files
 [ ] Config (themes, fonts, colour, etc.)
-[ ] Curve Previews
+[x] Curve Previews
 
 * Functionality
 [ ] Chart Titles
@@ -15,11 +15,11 @@
 [ ] Complex event (e.g. COD rather than t/f)
 [ ] Multi-column discriminator
 [ ] P-values
-[ ] Forrest plots 
+[x] Forrest plots 
 [ ] Kaplan horizontal limits 
 [x] Chi Squareds
 [x] Multivaraite Analysis (???)
-  [ ] Hazard ratio
+  [ ] Hazard ratio (not log...)
   [ ] Survival
   [ ] ...
 [ ] Cox Regression Curves (per-timepoint compensation)

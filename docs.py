@@ -47,7 +47,7 @@ class DocumentationButtonArrea(QWidget):
         super().__init__(parent)
 
         self.layout = QVBoxLayout()
-        self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.welcome_button = QPushButton("Welcome")
         self.load_button = QPushButton("Loading Data")

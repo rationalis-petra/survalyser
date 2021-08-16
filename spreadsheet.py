@@ -7,12 +7,12 @@ from PySide6.QtGui import QAction
 
 import numpy as np
 import pandas as pd
-import matplotlib as plt
 from scipy.stats import chi2_contingency
 
 import analyser
 from toolbar import ToolBarWidget
 from icons import sv_icons
+from preview import FigurePreview
 
 comparators = {
     "=": lambda x, y: x == y,
@@ -147,16 +147,22 @@ class SpreadSheetWindow(ToolBarWidget):
         event = self.kaplan_event_combo.currentText()
         discriminator = self.kaplan_discrim_combo.currentText()
 
-        plot = analyser.get_kaplan(self.data, time, event, discriminator)
+        # do analysis
+        fig = analyser.get_kaplan(self.data, time, event, discriminator)
 
+        # do preview
+        preview = FigurePreview(fig)
+        preview.exec()
+
+        # save file
         file_name = QFileDialog.getSaveFileName(self,
                                                 "Save Kaplan Diagram",
                                                 ".",
                                                 "Image files (*.png)")
         if file_name[0] != '':
-            plot.savefig(file_name[0])
+            fig.savefig(file_name[0])
 
-        plt.clear()
+        fig.clear()
 
     def analyse_cox(self):
         time_col = self.cox_time_combo.currentText()
@@ -190,15 +196,20 @@ class SpreadSheetWindow(ToolBarWidget):
                 # connect
 
         fit_cox = analyser.get_cox(cox_data, time_col, event_col, value_cols)
+        fig = fit_cox.plot().get_figure()
+
+        preview = FigurePreview(fig)
+        preview.exec()
+
         file_name = QFileDialog.getSaveFileName(self,
                                                 "Save Cox Diagram",
                                                 ".",
                                                 "Image files (*.png)")
-        plot = fit_cox.plot().get_figure()
-        if file_name[0] != '':
-            plot.savefig(file_name[0])
 
-        plt.clear()
+        if file_name[0] != '':
+            fig.savefig(file_name[0])
+
+        fig.clear()
 
     def analyse_chi(self):
         discriminator_col = self.chi_discriminator_col.currentText()
@@ -212,7 +223,7 @@ class SpreadSheetWindow(ToolBarWidget):
                           chisq_data.iloc[1][0:5].values])
         print(chi2_contingency(value)[0:3])
 
-        plt.clear()
+        # plot.clear()
 
     def do_filter(self):
         dialog = FilterDialog(self)
