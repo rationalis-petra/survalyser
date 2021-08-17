@@ -32,10 +32,6 @@ def get_kaplan(data, time_col, event_col, discriminator_col):
 
 
 def get_cox(data, tc, ec, value_cols):
-    print(tc)
-    print(ec)
-    print(value_cols)
-
     cols = value_cols
     cols.append(ec)
     cols.append(tc)
@@ -44,8 +40,5 @@ def get_cox(data, tc, ec, value_cols):
 
     cph = life.CoxPHFitter()
     cph.fit(data, duration_col=tc, event_col=ec)
-
-    out = cph.plot()
-    out.get_figure().savefig("test-data/test-cph.png")
 
     return cph

@@ -12,7 +12,7 @@ from scipy.stats import chi2_contingency
 import analyser
 from toolbar import ToolBarWidget
 from icons import sv_icons
-from preview import FigurePreview
+from preview import FigurePreview, CoxPreview
 
 comparators = {
     "=": lambda x, y: x == y,
@@ -196,9 +196,8 @@ class SpreadSheetWindow(ToolBarWidget):
                 # connect
 
         fit_cox = analyser.get_cox(cox_data, time_col, event_col, value_cols)
-        fig = fit_cox.plot().get_figure()
 
-        preview = FigurePreview(fig)
+        preview = CoxPreview(fit_cox)
         preview.exec()
 
         file_name = QFileDialog.getSaveFileName(self,
@@ -207,6 +206,7 @@ class SpreadSheetWindow(ToolBarWidget):
                                                 "Image files (*.png)")
 
         if file_name[0] != '':
+            fig = fit_cox.plot().get_figure()
             fig.savefig(file_name[0])
 
         fig.clear()
