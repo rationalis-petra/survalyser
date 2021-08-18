@@ -12,7 +12,7 @@ from scipy.stats import chi2_contingency
 import analyser
 from toolbar import ToolBarWidget
 from icons import sv_icons
-from preview import FigurePreview, CoxPreview
+from preview import KaplanPreview, CoxPreview, ChiPreview
 
 comparators = {
     "=": lambda x, y: x == y,
@@ -148,21 +148,11 @@ class SpreadSheetWindow(ToolBarWidget):
         discriminator = self.kaplan_discrim_combo.currentText()
 
         # do analysis
-        fig = analyser.get_kaplan(self.data, time, event, discriminator)
+        model = analyser.get_kaplan(self.data, time, event, discriminator)
 
         # do preview
-        preview = FigurePreview(fig)
+        preview = KaplanPreview(model)
         preview.exec()
-
-        # save file
-        file_name = QFileDialog.getSaveFileName(self,
-                                                "Save Kaplan Diagram",
-                                                ".",
-                                                "Image files (*.png)")
-        if file_name[0] != '':
-            fig.savefig(file_name[0])
-
-        fig.clear()
 
     def analyse_cox(self):
         time_col = self.cox_time_combo.currentText()
@@ -195,21 +185,18 @@ class SpreadSheetWindow(ToolBarWidget):
                 cox_data = self.data[index]
                 # connect
 
-        fit_cox = analyser.get_cox(cox_data, time_col, event_col, value_cols)
+        try:
+            fit_cox = analyser.get_cox(cox_data, time_col,
+                                       event_col, value_cols)
+            preview = CoxPreview(fit_cox)
+            preview.exec()
 
-        preview = CoxPreview(fit_cox)
-        preview.exec()
-
-        file_name = QFileDialog.getSaveFileName(self,
-                                                "Save Cox Diagram",
-                                                ".",
-                                                "Image files (*.png)")
-
-        if file_name[0] != '':
-            fig = fit_cox.plot().get_figure()
-            fig.savefig(file_name[0])
-
-        fig.clear()
+        except ValueError:
+            warn = QMessageBox()
+            warn.setText("The cox fitter has returned a ValueError. "
+                         "It is most likely that one of the columns "
+                         "you provided has non-numeric data!")
+            warn.exec()
 
     def analyse_chi(self):
         discriminator_col = self.chi_discriminator_col.currentText()
@@ -221,7 +208,7 @@ class SpreadSheetWindow(ToolBarWidget):
 
         value = np.array([chisq_data.iloc[0][0:5].values,
                           chisq_data.iloc[1][0:5].values])
-        print(chi2_contingency(value)[0:3])
+        ChiPreview(chi2_contingency(value))
 
         # plot.clear()
 

@@ -18,7 +18,7 @@
 [ ] Kaplan horizontal limits 
 [x] Chi Squareds
 [x] Multivaraite Analysis (???)
-  [ ] Hazard ratio (not log...)
+  [x] Hazard ratio (not log...)
   [ ] Survival
   [ ] ...
 [ ] Cox Regression Curves (per-timepoint compensation)
