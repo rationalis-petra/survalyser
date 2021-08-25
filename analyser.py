@@ -17,30 +17,20 @@ def get_kaplan(data, time_col, event_col, discriminator_col):
                    data.loc[selector, event_col],
                    label=val)
 
-    # step 3: plot the data
-    # TODO: title
-    ax = None
-    for (val, fitter) in fitters.items():
-        ax = fitter.plot(ci_show=False,
-                         xlim=(0, 20),
-                         ax=ax)
-
     # plt = life.plotting.add_at_risk_counts(kmf_indig,
     #                                        kmf_nonindig,
     #                                        ax=ax)
-    return ax.get_figure()
+    return fitters
 
 
 def get_cox(data, tc, ec, value_cols):
-    # cols = value_cols
-    # cols.append(ec)
-    # cols.append(tc)
-    # data = data[cols]
+    cols = value_cols
+    cols.append(ec)
+    cols.append(tc)
+    data = data[cols]
+    print(data.columns)
 
-    # cph = life.CoxPHFitter()
-    # cph.fit(data, duration_col=tc, event_col=ec)
+    cph = life.CoxPHFitter()
+    cph.fit(data, duration_col=tc, event_col=ec)
 
-    # return cph
-    print("time = " + tc)
-    print("event = " + ec)
-    print("values = " + ' '.join(list(value_cols)))
+    return cph

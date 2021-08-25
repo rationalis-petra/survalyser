@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import (QWidget, QPushButton, QLabel, QFileDialog,
                                QVBoxLayout, QStackedLayout, QApplication)
 from PySide6.QtCore import Qt
-# from PySide6.QtGui import QIcon
+# from PyQt6.QtGui import QIcon
 
 import pandas as pd
 
@@ -54,7 +54,8 @@ class SurvalyserMain(QWidget):
 
         self.setLayout(self.layout)
 
-        self.resize(1080, 720)
+        self.resize(1280, 720)
+        self.setWindowState(Qt.WindowMaximized)
         self.move(100, 100)
 
         self.setWindowTitle("Survalyser")

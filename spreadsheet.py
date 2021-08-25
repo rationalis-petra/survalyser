@@ -1,22 +1,27 @@
 from PySide6.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem,
                                QVBoxLayout, QHBoxLayout, QPushButton,
                                QFileDialog, QDialog, QFormLayout, QComboBox,
-                               QTextEdit, QLabel)
+                               QTextEdit, QLabel, QMessageBox)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 
 import numpy as np
+import pandas as pd
+from scipy.stats import chi2_contingency
 
 import analyser
 from toolbar import ToolBarWidget
 from icons import sv_icons
+from preview import KaplanPreview, CoxPreview, ChiPreview
 
 comparators = {
     "=": lambda x, y: x == y,
     ">": lambda x, y: x > y,
     "<": lambda x, y: x < y,
     ">=": lambda x, y: x >= y,
-    "<=": lambda x, y: x <= y
+    "<=": lambda x, y: x <= y,
+    "!=": lambda x, y: x != y,
+    "nan": lambda x: pd.isna(x)
 }
 
 
@@ -35,21 +40,24 @@ class SpreadSheetWindow(ToolBarWidget):
 
         # KAPLAN MEIER
         kaplan_lbl = QLabel("<font color=darkblue size = 5>Kaplan Meier")
-        self.select_time_btn = QPushButton("Select Time")
-        self.select_event_btn = QPushButton("Select Event")
-        self.select_discrim_btn = QPushButton("Select Discriminator")
-        self.analyse_btn = QPushButton("Analyse!")
+        kaplan_time_lbl = QLabel("Select Time")
+        self.kaplan_time_combo = QComboBox()
+        kaplan_event_lbl = QLabel("Select Event")
+        self.kaplan_event_combo = QComboBox()
+        kaplan_discrim_lbl = QLabel("Select Discriminator")
+        self.kaplan_discrim_combo = QComboBox()
+        self.kaplan_analyse_btn = QPushButton("Analyse!")
 
-        self.select_time_btn.clicked.connect(self.set_time_col)
-        self.select_event_btn.clicked.connect(self.set_event_col)
-        self.select_discrim_btn.clicked.connect(self.set_discrim_col)
-        self.analyse_btn.clicked.connect(self.analyse)
+        self.kaplan_analyse_btn.clicked.connect(self.analyse_kaplan)
 
         self.sidebar.layout.addWidget(kaplan_lbl)
-        self.sidebar.layout.addWidget(self.select_time_btn)
-        self.sidebar.layout.addWidget(self.select_event_btn)
-        self.sidebar.layout.addWidget(self.select_discrim_btn)
-        self.sidebar.layout.addWidget(self.analyse_btn)
+        self.sidebar.layout.addWidget(kaplan_time_lbl)
+        self.sidebar.layout.addWidget(self.kaplan_time_combo)
+        self.sidebar.layout.addWidget(kaplan_event_lbl)
+        self.sidebar.layout.addWidget(self.kaplan_event_combo)
+        self.sidebar.layout.addWidget(kaplan_discrim_lbl)
+        self.sidebar.layout.addWidget(self.kaplan_discrim_combo)
+        self.sidebar.layout.addWidget(self.kaplan_analyse_btn)
 
         # COX REGRESSION
         cox_lbl = QLabel("<font color=darkblue size = 5>Cox Regression")
@@ -58,7 +66,7 @@ class SpreadSheetWindow(ToolBarWidget):
         cox_event_lbl = QLabel("Select Event Column")
         self.cox_event_combo = QComboBox()
         cox_covar_lbl = QLabel("Select Covaraites")
-        self.cox_covar_cols = CoxColumnSelect(self)
+        self.cox_covar_cols = MultiColumnSelect(self)
         self.cox_analyse_btn = QPushButton("Analyse!")
 
         self.cox_analyse_btn.clicked.connect(self.analyse_cox)
@@ -71,6 +79,29 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout.addWidget(cox_covar_lbl)
         self.sidebar.layout.addWidget(self.cox_covar_cols)
         self.sidebar.layout.addWidget(self.cox_analyse_btn)
+
+        # CHI Square Test
+        chi_lbl = QLabel("<font color=darkblue size = 5>Chi Square")
+        chi_discriminator_lbl = QLabel("Select Discriminator")
+        self.chi_discriminator_col = QComboBox()
+        chi_cat_lbl = QLabel("Select Category Columns")
+        self.chi_cat_col = QComboBox()
+        self.chi_analyse_btn = QPushButton("Test!")
+
+        self.chi_analyse_btn.clicked.connect(self.analyse_chi)
+
+        self.sidebar.layout.addWidget(chi_lbl)
+        self.sidebar.layout.addWidget(chi_discriminator_lbl)
+        self.sidebar.layout.addWidget(self.chi_discriminator_col)
+        self.sidebar.layout.addWidget(chi_cat_lbl)
+        self.sidebar.layout.addWidget(self.chi_cat_col)
+        self.sidebar.layout.addWidget(self.chi_analyse_btn)
+
+        # self.scroll_area = QScrollArea()
+        # self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.scroll_area.setBackgroundRole(QPalette.Dark)
+        # self.scroll_area.setWidget(self.sidebar)
 
         self.sidebar.setLayout(self.sidebar.layout)
 
@@ -98,78 +129,143 @@ class SpreadSheetWindow(ToolBarWidget):
                 item.setText(str(dataframe.loc[row, dataframe.columns[col]]))
                 self.table.setItem(row, col, item)
 
+        self.kaplan_time_combo.addItems(dataframe.columns)
+        self.kaplan_event_combo.addItems(dataframe.columns)
+        self.kaplan_discrim_combo.addItems(dataframe.columns)
+
         self.cox_time_combo.addItems(dataframe.columns)
         self.cox_event_combo.addItems(dataframe.columns)
+
+        self.chi_discriminator_col.addItems(dataframe.columns)
+        self.chi_cat_col.addItems(dataframe.columns)
 
         self.data = dataframe
         self.cox_covar_cols.set_data(dataframe)
 
-    def set_col_color(self, old, color):
-        if old is not None:
-            for row in range(0, self.data.shape[0]):
-                self.table.item(row, old).setBackground(Qt.white)
-        col = self.table.currentColumn()
-        for row in range(0, self.data.shape[0]):
-            self.table.item(row, col).setBackground(color)
+    def analyse_kaplan(self):
+        time = self.kaplan_time_combo.currentText()
+        event = self.kaplan_event_combo.currentText()
+        discriminator = self.kaplan_discrim_combo.currentText()
 
-    def set_time_col(self, widget):
-        self.set_col_color(self.time_col, Qt.red)
-        self.time_col = self.table.currentColumn()
+        # do analysis
+        model = analyser.get_kaplan(self.data, time, event, discriminator)
 
-    def set_discrim_col(self, widget):
-        self.set_col_color(self.discrim_col, Qt.blue)
-        self.discrim_col = self.table.currentColumn()
-
-    def set_event_col(self, widget):
-        self.set_col_color(self.event_col, Qt.yellow)
-        self.event_col = self.table.currentColumn()
-
-    def analyse(self):
-        if (self.data is None or self.time_col is None or
-           self.discrim_col is None or self.event_col is None):
-            print("must have data, time, event, discriminator")
-        else:
-            time = self.data.columns[self.time_col]
-            event = self.data.columns[self.event_col]
-            discriminator = self.data.columns[self.discrim_col]
-
-            plot = analyser.get_kaplan(self.data, time, event, discriminator)
-
-            file_name = QFileDialog.getSaveFileName(self,
-                                                    "Open Dataset",
-                                                    ".",
-                                                    "Image files (*.png)")
-            if file_name[0] != '':
-                plot.savefig(file_name[0])
+        # do preview
+        preview = KaplanPreview(model)
+        preview.exec()
 
     def analyse_cox(self):
         time_col = self.cox_time_combo.currentText()
         event_col = self.cox_event_combo.currentText()
         value_cols = self.cox_covar_cols.get_values()
-        analyser.get_cox(self.data, time_col, event_col, value_cols)
+
+        bad_cols = []
+        for col in value_cols:
+            if self.data[col].isnull().values.any():
+                bad_cols.append(col)
+
+        cox_data = self.data
+        if len(bad_cols) != 0:
+            msg_box = QMessageBox()
+            msg_box.setText("The Following columns contain nan values: " +
+                            ' '.join(bad_cols))
+            msg_box.setInformativeText("Would you like to filter them out?")
+            filter_btn = msg_box.addButton("Filter", QMessageBox.ActionRole)
+            msg_box.addButton(QMessageBox.Cancel)
+
+            msg_box.exec()
+            if not msg_box.clickedButton() == filter_btn:
+                return
+            else:
+                # filter out nan values
+                index = np.full(self.data.shape[0], True, dtype=bool)
+                for col in bad_cols:
+                    index = index & self.data[col].notnull()
+
+                cox_data = self.data[index]
+                # connect
+
+        try:
+            fit_cox = analyser.get_cox(cox_data, time_col,
+                                       event_col, value_cols)
+            preview = CoxPreview(fit_cox)
+            preview.exec()
+
+        except ValueError:
+            warn = QMessageBox()
+            warn.setText("The cox fitter has returned a ValueError. "
+                         "It is most likely that one of the columns "
+                         "you provided has non-numeric data!")
+            warn.exec()
+
+    def analyse_chi(self):
+        discriminator_col = self.chi_discriminator_col.currentText()
+        category_cols = self.chi_cat_col.currentText()
+
+        chisq_data = pd.crosstab(self.data[category_cols],
+                                 self.data[discriminator_col])
+        print(chisq_data)
+
+        value = np.array([chisq_data.iloc[0][0:5].values,
+                          chisq_data.iloc[1][0:5].values])
+        ChiPreview(chi2_contingency(value))
+
+        # plot.clear()
 
     def do_filter(self):
         dialog = FilterDialog(self)
         acc, value, col, comp = dialog.run()
         col_type = self.data.dtypes[col]
+        # special case: isnan
+        if comp == "nan":
+            index = self.data[col].apply(comparators[comp])
+            counter = 0
+            for elt in index:
+                if elt:
+                    self.table.removeRow(counter)
+                else:
+                    counter = counter + 1
+
+            # now, update the model
+            self.data = self.data[~index]
+            return
+
         if acc == 1:
             if col_type == np.float64:
-                val = float(value)
+                try:
+                    val = float(value)
+                except ValueError:
+                    msg = QMessageBox()
+                    msg.setText("The value " + value + " is nota number, "
+                                "but this columns contains numeric data. "
+                                "Please provide a numeric value.")
+                    msg.setWindowTitle("Error Report")
+                    msg.exec()
+                    return
             elif col_type == np.int64:
-                val = int(value)
+                try:
+                    val = int(value)
+                except ValueError:
+                    msg = QMessageBox()
+                    msg.setText("The value " + value + " is nota number, "
+                                "but this columns contains numeric data. "
+                                "Please provide a numeric value.")
+                    msg.setWindowTitle("Error Report")
+                    msg.exec()
+                    return
             else:
                 val = value
 
             index = self.data[col].apply(comparators[comp], args=(val,))
             counter = 0
             for elt in index:
-                if not elt:
+                if elt:
                     self.table.removeRow(counter)
                 else:
                     counter = counter + 1
 
             # now, update the model
-            self.data = self.data[index]
+            self.data = self.data[~index]
 
 
 class FilterDialog(QDialog):
@@ -185,7 +281,7 @@ class FilterDialog(QDialog):
 
         for col in parent.data.columns:
             self.column_combo.addItem(col)
-        for comparator in ["=", ">", "<", ">=", "<="]:
+        for comparator in comparators.keys():
             self.comparator_combo.addItem(comparator)
 
         # set selected column
@@ -224,7 +320,7 @@ class FilterDialog(QDialog):
                 self.comparator_combo.currentText())
 
 
-class CoxColumnSelect(QWidget):
+class MultiColumnSelect(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -273,4 +369,4 @@ class CoxColumnSelect(QWidget):
             combo.addItems(data.columns)
 
     def get_values(self):
-        return map(lambda x: x.currentText(), self.combo_widgets)
+        return list(map(lambda x: x.currentText(), self.combo_widgets))

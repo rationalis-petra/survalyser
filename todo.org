@@ -1,12 +1,11 @@
-
 * UI
-[ ] Documentation (how to use)
+[x] Documentation (how to use)
 [ ] Error reporting (if the analysis fails)
 [x] Navigation
-[ ] Aesthetic improvements
+[x] Aesthetic improvements
 [ ] Frequently used files
 [ ] Config (themes, fonts, colour, etc.)
-[ ] Curve Previews
+[x] Curve Previews
 
 * Functionality
 [ ] Chart Titles
@@ -15,10 +14,15 @@
 [ ] Complex event (e.g. COD rather than t/f)
 [ ] Multi-column discriminator
 [ ] P-values
-[ ] Forrest plots 
-[ ] Chi Squareds
-[ ] Multivaraite Analysis (???)
-  [ ] Hazard ratio
+[x] Forrest plots 
+[ ] Kaplan horizontal limits 
+[x] Chi Squareds
+[x] Multivaraite Analysis (???)
+  [x] Hazard ratio (not log...)
   [ ] Survival
   [ ] ...
 [ ] Cox Regression Curves (per-timepoint compensation)
+
+
+* Bugs
+[ ] Stateful matplotlib API
