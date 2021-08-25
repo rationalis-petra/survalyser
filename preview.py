@@ -6,8 +6,9 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QDialog, QTableWidget,
 from PySide6.QtGui import QImage, QPixmap, QRegularExpressionValidator
 from PySide6.QtCore import Qt
 
+from lifelines.statistics import logrank_test
 import numpy as np
-import pandas as pd
+# import pandas as pd
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
@@ -26,19 +27,28 @@ class KaplanPreview(QDialog):
 
         self.layout = QHBoxLayout()
         self.lbl = QLabel()
+        self.pval_lbl = QLabel()
+
         self.form = QWidget()
         self.form_layout = QFormLayout(self.form)
 
         self.title_box = QLineEdit()
         self.title_box.setMinimumWidth(200)
+
         self.xlim_box = QLineEdit()
         self.xlim_box.setValidator(QRegularExpressionValidator("[0-9]*"))
+
         self.conf_box = QCheckBox()
+        self.pval_box = QCheckBox()
+        self.pval_box.clicked.connect(self.update_pval)
+
         self.plot_btn = QPushButton("Plot")
         self.plot_btn.clicked.connect(self.draw_model)
+
         self.form_layout.addRow("Title", self.title_box)
         self.form_layout.addRow("X-Limit", self.xlim_box)
         self.form_layout.addRow("Show CI", self.conf_box)
+        self.form_layout.addRow("P-value", self.pval_box)
         self.form_layout.addRow(self.plot_btn)
 
         # spacing
@@ -58,7 +68,13 @@ class KaplanPreview(QDialog):
         self.form_layout.addRow(self.cancel_btn)
 
         self.layout.addWidget(self.form)
-        self.layout.addWidget(self.lbl)
+
+        display = QWidget()
+        display.layout = QVBoxLayout(display)
+        display.layout.addWidget(self.lbl)
+        display.layout.addWidget(self.pval_lbl)
+
+        self.layout.addWidget(display)
 
         self.draw_model()
 
@@ -80,7 +96,7 @@ class KaplanPreview(QDialog):
 
         # plot the data
         ax = None
-        for (val, fitter) in self.model.items():
+        for (val, fitter) in self.model.fitters.items():
             ax = fitter.plot(ci_show=show_conf,
                              title=title,
                              xlim=xlim,
@@ -101,6 +117,21 @@ class KaplanPreview(QDialog):
 
         self.lbl.setPixmap(QPixmap.fromImage(img))
 
+        if len(self.model.fitters.items()) == 2:
+            (time_series, event_series, discrim_series, cat) = self.model.data
+            time1 = time_series[discrim_series == cat[0]]
+            time2 = time_series[discrim_series == cat[1]]
+            event1 = event_series[discrim_series == cat[0]]
+            event2 = event_series[discrim_series == cat[1]]
+            results = logrank_test(time1, time2, event1, event2)
+
+            self.pval_lbl.setText(str(results.p_value))
+            self.pval_box.setCheckState(Qt.CheckState.Checked)
+        else:
+            self.pval_lbl.setText("Can only have p-values when there "
+                                  "are exactly 2 curves")
+            self.pval_lbl.hide()
+
     def save_plot(self):
         # save file
         file_name = QFileDialog.getSaveFileName(self,
@@ -109,6 +140,13 @@ class KaplanPreview(QDialog):
                                                 "Image files (*.png)")
         if file_name[0] != '':
             self.figure.savefig(file_name[0])
+
+    def update_pval(self, event):
+        state = self.pval_box.checkState()
+        if state == Qt.CheckState.Checked:
+            self.pval_lbl.show()
+        else:
+            self.pval_lbl.hide()
 
     def closeEvent(self, event):
         self.figure.clear()
@@ -256,6 +294,7 @@ class CoxPreview(QDialog):
             self.forrest_plot.clear()
         if self.cov_plot is not None:
             self.cov_plot.clear()
+
 
 
 class ChiPreview(QDialog):
