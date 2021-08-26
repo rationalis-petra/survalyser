@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt
 
 from lifelines.statistics import logrank_test
 import numpy as np
+import pandas as pd
 # import pandas as pd
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -296,22 +297,34 @@ class CoxPreview(QDialog):
             self.cov_plot.clear()
 
 
-
 class ChiPreview(QDialog):
     def __init__(self, model):
         super().__init__()
+
         values = model[0:3]
-        stat = values[0]
-        pval = values[1]
-        freedom = values[2]
+        self.stat = values[0]
+        self.pval = values[1]
+        self.freedom = values[2]
 
         layout = QFormLayout(self)
 
-        layout.addRow("Statistic:", QLabel(stat))
-        layout.addRow("P-Value:", QLabel(pval))
-        layout.addRow("Degrees of Freedom", QLabel(freedom))
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect.save_chi_vals
 
+        layout.addRow("Statistic:", QLabel(str(self.stat)))
+        layout.addRow("P-Value:", QLabel(str(self.pval)))
+        layout.addRow("Degrees of Freedom", QLabel(str(self.freedom)))
+        layout.addRow(save_btn)
 
-class FigureDisplay(QLabel):
-    def __init__(self):
-        super().__init__()
+    def save_chi_vals(self):
+        data = {"P-Value:": self.pval,
+                "Statistic": self.stat,
+                "Degrees of Freedom": self.freedom}
+        frame = pd.DataFrame(data=data)
+
+        file_name = QFileDialog.getSaveFileName(self,
+                                                "Save Chi Summary",
+                                                ".",
+                                                "CSV Files (*.csv)")
+
+        frame.to_csv(file_name)
