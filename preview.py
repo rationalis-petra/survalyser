@@ -309,7 +309,7 @@ class ChiPreview(QDialog):
         layout = QFormLayout(self)
 
         save_btn = QPushButton("Save")
-        save_btn.clicked.connect.save_chi_vals
+        save_btn.clicked.connect(self.save_chi_vals)
 
         layout.addRow("Statistic:", QLabel(str(self.stat)))
         layout.addRow("P-Value:", QLabel(str(self.pval)))
@@ -317,9 +317,9 @@ class ChiPreview(QDialog):
         layout.addRow(save_btn)
 
     def save_chi_vals(self):
-        data = {"P-Value:": self.pval,
-                "Statistic": self.stat,
-                "Degrees of Freedom": self.freedom}
+        data = {"P Value:": [self.pval],
+                "Statistic": [self.stat],
+                "Degrees of Freedom": [self.freedom]}
         frame = pd.DataFrame(data=data)
 
         file_name = QFileDialog.getSaveFileName(self,
@@ -327,4 +327,5 @@ class ChiPreview(QDialog):
                                                 ".",
                                                 "CSV Files (*.csv)")
 
-        frame.to_csv(file_name)
+        if file_name[0] != '':
+            frame.to_csv(file_name)
