@@ -10,15 +10,7 @@ class KaplanResult:
         self.data = None
 
 
-def get_kaplan(data, time_col, event_col, discriminator_col):
-    # step 1: find out all unique values for discriminator
-
-    tcol = data[time_col]
-    ecol = data[event_col]
-    dcol = data[discriminator_col]
-
-    cat = dcol.unique()
-
+def update_eventcol(data, ecol, event_col):
     if ecol.dtypes == np.dtype('object'):
         mydict = {
             'True': True,
@@ -29,7 +21,19 @@ def get_kaplan(data, time_col, event_col, discriminator_col):
             'false': False,
             'f': False,
             'F': False}
-        ecol = data.replace({event_col: mydict})[event_col]
+        return data.replace({event_col: mydict})[event_col]
+
+
+def get_kaplan(data, time_col, event_col, discriminator_col):
+    # step 1: find out all unique values for discriminator
+
+    tcol = data[time_col]
+    ecol = data[event_col]
+    dcol = data[discriminator_col]
+
+    cat = dcol.unique()
+
+    ecol = update_eventcol(data, ecol, event_col)
 
     # step 2: create fitters for each value & fit data
     fitters = KaplanResult()
@@ -56,6 +60,7 @@ def get_cox(data, tc, ec, value_cols):
     cols.append(ec)
     cols.append(tc)
     data = data[cols]
+    data[ec] = update_eventcol(data, data[ec], ec)
     print(data.columns)
 
     cph = life.CoxPHFitter()
