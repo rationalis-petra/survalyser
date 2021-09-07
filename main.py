@@ -85,11 +85,8 @@ class SurvalyserMain(QWidget):
         self.layout.setCurrentIndex(0)
 
 
-def main():
+if __name__ == "__main__":
     app = QApplication([])
     win = SurvalyserMain()
     win.show()
     sys.exit(app.exec())
-
-
-main()
