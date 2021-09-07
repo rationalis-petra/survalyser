@@ -204,13 +204,11 @@ class SpreadSheetWindow(ToolBarWidget):
 
         chisq_data = pd.crosstab(self.data[category_cols],
                                  self.data[discriminator_col])
-        print(chisq_data)
 
         value = np.array([chisq_data.iloc[0][0:5].values,
                           chisq_data.iloc[1][0:5].values])
-        ChiPreview(chi2_contingency(value))
-
-        # plot.clear()
+        prev = ChiPreview(chi2_contingency(value))
+        prev.exec()
 
     def do_filter(self):
         dialog = FilterDialog(self)
