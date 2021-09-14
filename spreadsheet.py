@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem,
                                QVBoxLayout, QHBoxLayout, QPushButton,
-                               QFileDialog, QDialog, QFormLayout, QComboBox,
+                               QDialog, QFormLayout, QComboBox,
                                QTextEdit, QLabel, QMessageBox)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
@@ -34,9 +34,11 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout.setAlignment(Qt.AlignTop)
 
         self.data = None
+        self.display = None
         self.time_col = None
         self.discrim_col = None
         self.event_col = None
+        self.filters = []
 
         # KAPLAN MEIER
         kaplan_lbl = QLabel("<font color=darkblue size = 5>Kaplan Meier")
@@ -213,6 +215,9 @@ class SpreadSheetWindow(ToolBarWidget):
     def do_filter(self):
         dialog = FilterDialog(self)
         acc, value, col, comp = dialog.run()
+        if acc == 0:
+            return
+
         col_type = self.data.dtypes[col]
         # special case: isnan
         if comp == "nan":
@@ -226,9 +231,10 @@ class SpreadSheetWindow(ToolBarWidget):
 
             # now, update the model
             self.data = self.data[~index]
+            self.filters.append(Filter(col, comp))
+            self.update_table
             return
-
-        if acc == 1:
+        else:
             if col_type == np.float64:
                 try:
                     val = float(value)
@@ -254,6 +260,8 @@ class SpreadSheetWindow(ToolBarWidget):
             else:
                 val = value
 
+            filt = Filter(col, comp, val)
+            self.filters.append(filt)
             index = self.data[col].apply(comparators[comp], args=(val,))
             counter = 0
             for elt in index:
@@ -264,6 +272,18 @@ class SpreadSheetWindow(ToolBarWidget):
 
             # now, update the model
             self.data = self.data[~index]
+
+    def update_table(self):
+        self.display = self.data
+        index = np.repeat(a=True, repeats=self.data.shape[0])
+        for filt in self.filters:
+            if filt.val is None:
+                newIndex = self.data[filt.col].apply(comparators[filt.comp])
+            else:
+                newIndex = self.data[filt.col].apply(comparators[filt.comp],
+                                                     args=(filt.val,))
+            index = index & newIndex
+        self.display = self.data[~index]
 
 
 class FilterDialog(QDialog):
@@ -368,3 +388,50 @@ class MultiColumnSelect(QWidget):
 
     def get_values(self):
         return list(map(lambda x: x.currentText(), self.combo_widgets))
+
+
+class Filter:
+    def __init__(self, col, comp, val=None):
+        self.col = col
+        self.comp = comp
+        self.val = val
+
+
+class FilterWidget(QWidget):
+    def __init__(self, filt, parent):
+        txt = filt.col + " "
+        if filt.val is None:
+            txt = txt + str(filt.comp)
+        else:
+            txt = txt + str(filt.comp) + str(filt.val)
+        lbl = QLabel(txt)
+        xbtn = QPushButton("x")
+        xbtn.clicked.connect(self.do_delete)
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(lbl)
+        layout.addWidget(xbtn)
+
+    def do_delete(self):
+        self.parent.layout.removeWidget(self)
+
+
+class FilterWindow(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+
+        self.layout = QVBoxLayout(self)
+        filterTitle = QLabel("<font color=darkblue size = 20>Kaplan Meier</font>")
+        self.layout.addWidget(filterTitle)
+
+        for filt in parent.filters:
+            filterWidget = FilterWidget(filt, parent)
+            self.layout.addWidget(filterWidget)
+
+        newFilterBtn = QPushButton("new")
+        newFilterBtn.clicked.connect(self.new_filter)
+        self.layout.addWidget(newFilterBtn)
+
+    def new_filter(self):
+        pass
