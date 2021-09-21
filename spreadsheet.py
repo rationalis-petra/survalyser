@@ -13,16 +13,7 @@ import analyser
 from toolbar import ToolBarWidget
 from icons import sv_icons
 from preview import KaplanPreview, CoxPreview, ChiPreview
-
-comparators = {
-    "=": lambda x, y: x == y,
-    ">": lambda x, y: x > y,
-    "<": lambda x, y: x < y,
-    ">=": lambda x, y: x >= y,
-    "<=": lambda x, y: x <= y,
-    "!=": lambda x, y: x != y,
-    "nan": lambda x: pd.isna(x)
-}
+from filtering import FilterWindow, Filter, comparators
 
 
 class SpreadSheetWindow(ToolBarWidget):
@@ -116,7 +107,7 @@ class SpreadSheetWindow(ToolBarWidget):
         # add actions to the toolbar
         toolbar = self.getBar()
         self.action_filter = QAction(sv_icons.filt, "Filter", toolbar)
-        self.action_filter.triggered.connect(self.do_filter)
+        self.action_filter.triggered.connect(self.filter_popup)
         toolbar.addAction(self.action_filter)
 
     def set_data(self, dataframe):
@@ -142,6 +133,7 @@ class SpreadSheetWindow(ToolBarWidget):
         self.chi_cat_col.addItems(dataframe.columns)
 
         self.data = dataframe
+        self.display = dataframe
         self.cox_covar_cols.set_data(dataframe)
 
     def analyse_kaplan(self):
@@ -212,130 +204,36 @@ class SpreadSheetWindow(ToolBarWidget):
         prev = ChiPreview(chi2_contingency(value))
         prev.exec()
 
-    def do_filter(self):
-        dialog = FilterDialog(self)
-        acc, value, col, comp = dialog.run()
-        if acc == 0:
-            return
+    def filter_popup(self):
+        fWindow = FilterWindow(self)
+        fWindow.run()
+        self.update_data()
+        self.update_table()
 
-        col_type = self.data.dtypes[col]
-        # special case: isnan
-        if comp == "nan":
-            index = self.data[col].apply(comparators[comp])
-            counter = 0
-            for elt in index:
-                if elt:
-                    self.table.removeRow(counter)
-                else:
-                    counter = counter + 1
-
-            # now, update the model
-            self.data = self.data[~index]
-            self.filters.append(Filter(col, comp))
-            self.update_table
-            return
-        else:
-            if col_type == np.float64:
-                try:
-                    val = float(value)
-                except ValueError:
-                    msg = QMessageBox()
-                    msg.setText("The value " + value + " is nota number, "
-                                "but this columns contains numeric data. "
-                                "Please provide a numeric value.")
-                    msg.setWindowTitle("Error Report")
-                    msg.exec()
-                    return
-            elif col_type == np.int64:
-                try:
-                    val = int(value)
-                except ValueError:
-                    msg = QMessageBox()
-                    msg.setText("The value " + value + " is nota number, "
-                                "but this columns contains numeric data. "
-                                "Please provide a numeric value.")
-                    msg.setWindowTitle("Error Report")
-                    msg.exec()
-                    return
-            else:
-                val = value
-
-            filt = Filter(col, comp, val)
-            self.filters.append(filt)
-            index = self.data[col].apply(comparators[comp], args=(val,))
-            counter = 0
-            for elt in index:
-                if elt:
-                    self.table.removeRow(counter)
-                else:
-                    counter = counter + 1
-
-            # now, update the model
-            self.data = self.data[~index]
-
-    def update_table(self):
+    def update_data(self):
         self.display = self.data
-        index = np.repeat(a=True, repeats=self.data.shape[0])
+        index = np.repeat(a=False, repeats=self.data.shape[0])
         for filt in self.filters:
             if filt.val is None:
                 newIndex = self.data[filt.col].apply(comparators[filt.comp])
             else:
                 newIndex = self.data[filt.col].apply(comparators[filt.comp],
                                                      args=(filt.val,))
-            index = index & newIndex
+            index = index | newIndex
         self.display = self.data[~index]
 
+    def update_table(self):
+        dims = self.display.shape
+        self.table.clear()
+        self.table.setRowCount(dims[0])
+        self.table.setColumnCount(dims[1])
+        self.table.setHorizontalHeaderLabels(self.display.columns)
 
-class FilterDialog(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setWindowTitle("Filter")
-
-        form_layout = QFormLayout()
-        form = QWidget()
-        self.column_combo = QComboBox()
-        self.comparator_combo = QComboBox()
-        self.value_field = QTextEdit()
-
-        for col in parent.data.columns:
-            self.column_combo.addItem(col)
-        for comparator in comparators.keys():
-            self.comparator_combo.addItem(comparator)
-
-        # set selected column
-        self.column_combo.setCurrentIndex(parent.table.currentColumn())
-
-        form_layout.addRow("Column:", self.column_combo)
-        form_layout.addRow("Comparator:", self.comparator_combo)
-        form_layout.addRow("Value:", self.value_field)
-
-        form.setLayout(form_layout)
-
-        accept_btn = QPushButton("Filter")
-        accept_btn.clicked.connect(self.accept)
-
-        reject_btn = QPushButton("Cancel")
-        reject_btn.clicked.connect(self.reject)
-
-        button_area = QWidget()
-        button_area_layout = QHBoxLayout()
-        button_area_layout.addWidget(accept_btn)
-        button_area_layout.addWidget(reject_btn)
-        button_area.setLayout(button_area_layout)
-
-        layout = QVBoxLayout()
-        layout.addWidget(form)
-
-        layout.addWidget(button_area)
-
-        self.setLayout(layout)
-
-    def run(self):
-        self.exec()
-        return (self.result(),
-                self.value_field.toPlainText(),
-                self.column_combo.currentText(),
-                self.comparator_combo.currentText())
+        for row in range(0, dims[0]):
+            for col in range(0, dims[1]):
+                item = QTableWidgetItem()
+                item.setText(str(self.display.iloc[row, col]))
+                self.table.setItem(row, col, item)
 
 
 class MultiColumnSelect(QWidget):
@@ -388,50 +286,3 @@ class MultiColumnSelect(QWidget):
 
     def get_values(self):
         return list(map(lambda x: x.currentText(), self.combo_widgets))
-
-
-class Filter:
-    def __init__(self, col, comp, val=None):
-        self.col = col
-        self.comp = comp
-        self.val = val
-
-
-class FilterWidget(QWidget):
-    def __init__(self, filt, parent):
-        txt = filt.col + " "
-        if filt.val is None:
-            txt = txt + str(filt.comp)
-        else:
-            txt = txt + str(filt.comp) + str(filt.val)
-        lbl = QLabel(txt)
-        xbtn = QPushButton("x")
-        xbtn.clicked.connect(self.do_delete)
-
-        layout = QHBoxLayout(self)
-        layout.addWidget(lbl)
-        layout.addWidget(xbtn)
-
-    def do_delete(self):
-        self.parent.layout.removeWidget(self)
-
-
-class FilterWindow(QWidget):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-        self.layout = QVBoxLayout(self)
-        filterTitle = QLabel("<font color=darkblue size = 20>Kaplan Meier</font>")
-        self.layout.addWidget(filterTitle)
-
-        for filt in parent.filters:
-            filterWidget = FilterWidget(filt, parent)
-            self.layout.addWidget(filterWidget)
-
-        newFilterBtn = QPushButton("new")
-        newFilterBtn.clicked.connect(self.new_filter)
-        self.layout.addWidget(newFilterBtn)
-
-    def new_filter(self):
-        pass
