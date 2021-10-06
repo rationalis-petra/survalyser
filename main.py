@@ -63,9 +63,9 @@ class SurvalyserMain(QWidget):
     def on_load(self):
         self.spreadsheet_window
         file_name = QFileDialog.getOpenFileName(self,
-                                                "Open Dataset",
-                                                ".",
-                                                "CSV files (*.csv)")
+                                                "Open Dataset", # prompt
+                                                ".",            # starting directory
+                                                "CSV files (*.csv)") # filenames
         dataframe = pd.read_csv(file_name[0])
         self.spreadsheet_window.set_data(dataframe)
         self.layout.setCurrentIndex(1)

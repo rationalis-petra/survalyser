@@ -90,12 +90,6 @@ class SpreadSheetWindow(ToolBarWidget):
         self.sidebar.layout.addWidget(self.chi_cat_col)
         self.sidebar.layout.addWidget(self.chi_analyse_btn)
 
-        # self.scroll_area = QScrollArea()
-        # self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.scroll_area.setBackgroundRole(QPalette.Dark)
-        # self.scroll_area.setWidget(self.sidebar)
-
         self.sidebar.setLayout(self.sidebar.layout)
 
         self.table = QTableWidget()
@@ -122,13 +116,17 @@ class SpreadSheetWindow(ToolBarWidget):
                 item.setText(str(dataframe.loc[row, dataframe.columns[col]]))
                 self.table.setItem(row, col, item)
 
+        self.kaplan_time_combo.clear()
         self.kaplan_time_combo.addItems(dataframe.columns)
         self.kaplan_event_combo.addItems(dataframe.columns)
         self.kaplan_discrim_combo.addItems(dataframe.columns)
 
+        self.cox_time_combo.clear()
         self.cox_time_combo.addItems(dataframe.columns)
+        self.cox_event_combo.clear()
         self.cox_event_combo.addItems(dataframe.columns)
 
+        self.chi_discriminator_col.clear()
         self.chi_discriminator_col.addItems(dataframe.columns)
         self.chi_cat_col.addItems(dataframe.columns)
 
