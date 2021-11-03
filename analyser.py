@@ -22,6 +22,10 @@ def update_eventcol(data, ecol, event_col):
             'f': False,
             'F': False}
         return data.replace({event_col: mydict})[event_col]
+    elif ecol.dtypes == np.dtype('int64'):
+        return ~(data[event_col] == 0)
+    else:
+        print(ecol.dtypes)
 
 
 def get_kaplan(data, time_col, event_col, discriminator_col):
@@ -41,6 +45,8 @@ def get_kaplan(data, time_col, event_col, discriminator_col):
         fitter = life.KaplanMeierFitter()
         fitters.fitters[val] = fitter
         selector = dcol == val
+        print(len(tcol[selector]))
+        print(len(ecol[selector]))
         fitter.fit(tcol[selector],
                    ecol[selector],
                    label=val)
